@@ -8,6 +8,7 @@ import ParticipationPage from './pages/ParticipationPage';
 import MoodPage from './pages/MoodPage';
 import ReportsPage from './pages/ReportsPage';
 import HomePage from './pages/HomePage'; // Import HomePage
+import CourseManagementPage from './pages/CourseManagementPage'; // Import CourseManagementPage
 import { useState } from 'react';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
             <Nav.Link as={Link as any} to="/participation">🗣️ Participación</Nav.Link>
             <Nav.Link as={Link as any} to="/mood">😊 Estado de Ánimo</Nav.Link>
             <Nav.Link as={Link as any} to="/reports">📈 Informes</Nav.Link>
+            <Nav.Link as={Link as any} to="/courses">📚 Materias</Nav.Link>
           </Nav>
           <div className="mt-3 px-3 w-100">
             <Form.Group controlId="periodSelect">
@@ -66,6 +68,7 @@ function App() {
             <Route path="/participation" element={<ParticipationPage userId={userId} selectedPeriod={selectedPeriod} />} />
             <Route path="/mood" element={<MoodPage userId={userId} selectedPeriod={selectedPeriod} />} />
             <Route path="/reports" element={<ReportsPage userId={userId} selectedPeriod={selectedPeriod} />} />
+            <Route path="/courses" element={<CourseManagementPage userId={userId} selectedPeriod={selectedPeriod} />} />
           </Routes>
         </Col>
       </Row>
