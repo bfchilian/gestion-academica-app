@@ -24,7 +24,7 @@ function App() {
           <div className="sidebar-header text-center py-3">
             {/* Reemplaza 'logo.png' con la ruta a tu logo en la carpeta public */}
             <img src="/logo.png" alt="Logo de la Aplicación" className="img-fluid mb-2" style={{ maxWidth: '100px' }} />
-            <h4 className="mb-0">Mi escuela Fav</h4>
+            <h4 className="mb-0">Mis Cursos</h4>
           </div>
           <Nav className="flex-column flex-grow-1">
             <Nav.Link as={Link as any} to="/">🏠 Inicio</Nav.Link>

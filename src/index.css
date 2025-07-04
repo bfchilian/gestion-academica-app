@@ -1,4 +1,68 @@
+:root {
+  --color-primary: #FA2E59;
+  --color-secondary: #FF703F;
+  --color-tertiary: #F7BC05;
+  --color-quaternary: #ECF6BB;
+  --color-quinary: #76BCAD;
+}
 
+/* Override Bootstrap colors */
+.btn-primary, .bg-primary {
+  --bs-btn-bg: var(--color-primary);
+  --bs-btn-border-color: var(--color-primary);
+  --bs-btn-hover-bg: #e02a50;
+  --bs-btn-hover-border-color: #e02a50;
+  --bs-btn-active-bg: #c62547;
+  --bs-btn-active-border-color: #c62547;
+  --bs-btn-disabled-bg: var(--color-primary);
+  --bs-btn-disabled-border-color: var(--color-primary);
+}
+
+.btn-success, .bg-success {
+  --bs-btn-bg: var(--color-quinary);
+  --bs-btn-border-color: var(--color-quinary);
+  --bs-btn-hover-bg: #65a397;
+  --bs-btn-hover-border-color: #65a397;
+  --bs-btn-active-bg: #548a7e;
+  --bs-btn-active-border-color: #548a7e;
+  --bs-btn-disabled-bg: var(--color-quinary);
+  --bs-btn-disabled-border-color: var(--color-quinary);
+}
+
+.btn-info, .bg-info {
+  --bs-btn-bg: var(--color-secondary);
+  --bs-btn-border-color: var(--color-secondary);
+  --bs-btn-hover-bg: #e66539;
+  --bs-btn-hover-border-color: #e66539;
+  --bs-btn-active-bg: #cc5b31;
+  --bs-btn-active-border-color: #cc5b31;
+  --bs-btn-disabled-bg: var(--color-secondary);
+  --bs-btn-disabled-border-color: var(--color-secondary);
+}
+
+.btn-warning, .bg-warning {
+  --bs-btn-bg: var(--color-tertiary);
+  --bs-btn-border-color: var(--color-tertiary);
+  --bs-btn-hover-bg: #e0a904;
+  --bs-btn-hover-border-color: #e0a904;
+  --bs-btn-active-bg: #c69603;
+  --bs-btn-active-border-color: #c69603;
+  --bs-btn-disabled-bg: var(--color-tertiary);
+  --bs-btn-disabled-border-color: var(--color-tertiary);
+}
+
+.btn-dark, .bg-dark {
+  --bs-btn-bg: #343a40; /* Keeping default dark for now, or pick one from palette */
+  --bs-btn-border-color: #343a40;
+  --bs-btn-hover-bg: #23272b;
+  --bs-btn-hover-border-color: #1d2124;
+  --bs-btn-active-bg: #1c1f22;
+  --bs-btn-active-border-color: #191c1f;
+  --bs-btn-disabled-bg: #343a40;
+  --bs-btn-disabled-border-color: #343a40;
+}
+
+/* Original CSS below */
 .sidebar {
   position: fixed;
   top: 0;
