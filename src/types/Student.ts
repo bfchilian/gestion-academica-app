@@ -7,4 +7,5 @@ export interface Student {
   course?: string; // Optional field for student course
   email?: string; // Optional field for institutional email
   period?: string; // Optional field for academic period
+  matricula?: string; // Optional field for student ID number
 }

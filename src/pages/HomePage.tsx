@@ -30,7 +30,7 @@ const HomePage: React.FC<Props> = ({ userId, selectedPeriod }) => {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
-        const studentsToUpload: Array<{ name: string; group?: string; course?: string; email?: string; period?: string }> = [];
+        const studentsToUpload: Array<{ name: string; group?: string; course?: string; email?: string; period?: string; matricula?: string }> = [];
         results.data.forEach((row: any) => {
           if (row.name) {
             studentsToUpload.push({
@@ -39,6 +39,7 @@ const HomePage: React.FC<Props> = ({ userId, selectedPeriod }) => {
               course: courseName,
               email: row.email || undefined,
               period: selectedPeriod,
+              matricula: row.matricula || undefined, // Process matricula from CSV
             });
           }
         });
@@ -108,7 +109,7 @@ const HomePage: React.FC<Props> = ({ userId, selectedPeriod }) => {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files ? e.target.files[0] : null)}
               />
               <Form.Text className="text-muted">
-                El archivo CSV debe tener una columna 'name'. Opcionalmente, puede tener 'email'.
+                El archivo CSV debe tener una columna 'name'. Opcionalmente, puede tener 'email' y 'matricula'.
               </Form.Text>
             </Form.Group>
             <Button variant="primary" onClick={handleFileUpload}>

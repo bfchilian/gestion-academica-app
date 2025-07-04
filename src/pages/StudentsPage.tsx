@@ -28,6 +28,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   const [group, setGroup] = useState('');
   const [course, setCourse] = useState('');
   const [email, setEmail] = useState(''); // New state for email
+  const [matricula, setMatricula] = useState(''); // New state for matricula
   const [file, setFile] = useState<File | null>(null);
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
@@ -49,6 +50,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
     setGroup(student?.group || '');
     setCourse(student?.course || '');
     setEmail(student?.email || ''); // Set email for editing
+    setMatricula(student?.matricula || ''); // Set matricula for editing
     setShowAddEditModal(true);
   };
 
@@ -59,13 +61,14 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
     setGroup('');
     setCourse('');
     setEmail(''); // Clear email on close
+    setMatricula(''); // Clear matricula on close
   };
 
   const handleSaveStudent = () => {
     if (currentStudent) {
-      updateStudent(currentStudent.id, name, group, course, email, selectedPeriod);
+      updateStudent(currentStudent.id, name, group, course, email, selectedPeriod, matricula);
     } else {
-      addStudent(name, group, course, email, selectedPeriod);
+      addStudent(name, group, course, email, selectedPeriod, matricula);
     }
     handleCloseAddEditModal();
   };
@@ -80,7 +83,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
       header: true,
       skipEmptyLines: true,
       complete: async (results) => {
-        const studentsToUpload: Array<{ name: string; group?: string; course?: string; email?: string }> = [];
+        const studentsToUpload: Array<{ name: string; group?: string; course?: string; email?: string; matricula?: string }> = [];
         results.data.forEach((row: any) => {
           if (row.name) {
             studentsToUpload.push({
@@ -88,6 +91,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
               group: row.group || undefined,
               course: row.course || undefined,
               email: row.email || undefined, // Process email from CSV
+              matricula: row.matricula || undefined, // Process matricula from CSV
             });
           }
         });
@@ -131,6 +135,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Matrícula</th> {/* New column header */}
             <th>Grupo</th>
             <th>Curso</th>
             <th>Email</th> {/* New column header */}
@@ -141,6 +146,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
           {students.map((student) => (
             <tr key={student.id}>
               <td>{student.name}</td>
+              <td>{student.matricula || 'N/A'}</td> {/* Display matricula */}
               <td>{student.group || 'N/A'}</td>
               <td>{student.course || 'N/A'}</td>
               <td>{student.email || 'N/A'}</td> {/* Display email */}
@@ -196,6 +202,14 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Matrícula (Opcional)</Form.Label>
+              <Form.Control
+                type="text"
+                value={matricula}
+                onChange={(e) => setMatricula(e.target.value)}
+              />
+            </Form.Group>
           </Form>
         </Modal.Body>
         <Modal.Footer>
@@ -223,7 +237,7 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) => setFile(e.target.files ? e.target.files[0] : null)}
             />
             <Form.Text className="text-muted">
-              El archivo CSV debe tener una columna 'name'. Opcionalmente, puede tener 'group', 'course' y 'email'.
+              El archivo CSV debe tener una columna 'name'. Opcionalmente, puede tener 'group', 'course', 'email' y 'matricula'.
             </Form.Text>
           </Form.Group>
         </Modal.Body>

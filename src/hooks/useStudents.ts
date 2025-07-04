@@ -35,24 +35,24 @@ export const useStudents = (userId: string, selectedGroup?: string, selectedCour
     return () => unsubscribe();
   }, [userId, selectedGroup, selectedCourse, selectedPeriod]);
 
-  const addStudent = async (name: string, group?: string, course?: string, email?: string, period?: string) => {
+  const addStudent = async (name: string, group?: string, course?: string, email?: string, period?: string, matricula?: string) => {
     if (!userId) return;
-    await addDoc(collection(db, 'students'), { name, userId, group: group || null, course: course || null, email: email || null, period: period || null });
+    await addDoc(collection(db, 'students'), { name, userId, group: group || null, course: course || null, email: email || null, period: period || null, matricula: matricula || null });
   };
 
-  const addStudentsBatch = async (studentsToAdd: Array<{ name: string; group?: string; course?: string; email?: string; period?: string }>) => {
+  const addStudentsBatch = async (studentsToAdd: Array<{ name: string; group?: string; course?: string; email?: string; period?: string; matricula?: string }>) => {
     if (!userId) return;
     const batch = writeBatch(db);
     studentsToAdd.forEach(student => {
       const newStudentRef = doc(collection(db, 'students'));
-      batch.set(newStudentRef, { ...student, userId, group: student.group || null, course: student.course || null, email: student.email || null, period: student.period || null });
+      batch.set(newStudentRef, { ...student, userId, group: student.group || null, course: student.course || null, email: student.email || null, period: student.period || null, matricula: student.matricula || null });
     });
     await batch.commit();
   };
 
-  const updateStudent = async (id: string, name: string, group?: string, course?: string, email?: string, period?: string) => {
+  const updateStudent = async (id: string, name: string, group?: string, course?: string, email?: string, period?: string, matricula?: string) => {
     const studentDoc = doc(db, 'students', id);
-    await updateDoc(studentDoc, { name, group: group || null, course: course || null, email: email || null, period: period || null });
+    await updateDoc(studentDoc, { name, group: group || null, course: course || null, email: email || null, period: period || null, matricula: matricula || null });
   };
 
   const deleteStudent = async (studentId: string) => {
