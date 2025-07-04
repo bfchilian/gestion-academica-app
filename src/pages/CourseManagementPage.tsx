@@ -13,6 +13,8 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   const [showAddEditModal, setShowAddEditModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [name, setName] = useState('');
+  const [group, setGroup] = useState(''); // New state for group
+  const [course, setCourse] = useState(''); // New state for course
   const [summary, setSummary] = useState('');
   const [objectives, setObjectives] = useState('');
   const [strategies, setStrategies] = useState('');
@@ -22,6 +24,8 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   const handleShowAddEditModal = (course?: Course) => {
     setCurrentCourse(course || null);
     setName(course ? course.name : '');
+    setGroup(course?.group || ''); // Set group for editing
+    setCourse(course?.course || ''); // Set course for editing
     setSummary(course?.summary || '');
     setObjectives(course?.objectives || '');
     setStrategies(course?.strategies || '');
@@ -34,6 +38,8 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
     setShowAddEditModal(false);
     setCurrentCourse(null);
     setName('');
+    setGroup(''); // Clear group on close
+    setCourse(''); // Clear course on close
     setSummary('');
     setObjectives('');
     setStrategies('');
@@ -42,10 +48,15 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   };
 
   const handleSaveCourse = () => {
+    if (!name || !group || !course) {
+      alert('Por favor, completa el Nombre de la Materia, Grupo y Curso.');
+      return;
+    }
+
     if (currentCourse) {
-      updateCourse(currentCourse.id, name, summary, objectives, strategies, activities, tasks);
+      updateCourse(currentCourse.id, name, group, course, summary, objectives, strategies, activities, tasks);
     } else {
-      addCourse(name, summary, objectives, strategies, activities, tasks);
+      addCourse(name, group, course, summary, objectives, strategies, activities, tasks);
     }
     handleCloseAddEditModal();
   };
@@ -64,6 +75,8 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
         <thead>
           <tr>
             <th>Nombre</th>
+            <th>Grupo</th>
+            <th>Curso</th>
             <th>Resumen</th>
             <th>Acciones</th>
           </tr>
@@ -72,6 +85,8 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
           {courses.map((course) => (
             <tr key={course.id}>
               <td>{course.name}</td>
+              <td>{course.group}</td>
+              <td>{course.course}</td>
               <td>{course.summary || 'N/A'}</td>
               <td>
                 <Button variant="warning" onClick={() => handleShowAddEditModal(course)} className="me-2">
@@ -99,6 +114,24 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Grupo</Form.Label>
+              <Form.Control
+                type="text"
+                value={group}
+                onChange={(e) => setGroup(e.target.value)}
+                required
+              />
+            </Form.Group>
+            <Form.Group className="mb-3">
+              <Form.Label>Curso</Form.Label>
+              <Form.Control
+                type="text"
+                value={course}
+                onChange={(e) => setCourse(e.target.value)}
                 required
               />
             </Form.Group>

@@ -26,12 +26,14 @@ export const useCourses = (userId: string, selectedPeriod: string) => {
     return () => unsubscribe();
   }, [userId, selectedPeriod]);
 
-  const addCourse = async (name: string, summary?: string, objectives?: string, strategies?: string, activities?: string, tasks?: string) => {
+  const addCourse = async (name: string, group: string, course: string, summary?: string, objectives?: string, strategies?: string, activities?: string, tasks?: string) => {
     if (!userId || !selectedPeriod) return;
     await addDoc(collection(db, 'courses'), {
       userId,
       period: selectedPeriod,
       name,
+      group,
+      course,
       summary: summary || null,
       objectives: objectives || null,
       strategies: strategies || null,
@@ -40,10 +42,12 @@ export const useCourses = (userId: string, selectedPeriod: string) => {
     });
   };
 
-  const updateCourse = async (id: string, name: string, summary?: string, objectives?: string, strategies?: string, activities?: string, tasks?: string) => {
+  const updateCourse = async (id: string, name: string, group: string, course: string, summary?: string, objectives?: string, strategies?: string, activities?: string, tasks?: string) => {
     const courseDoc = doc(db, 'courses', id);
     await updateDoc(courseDoc, {
       name,
+      group,
+      course,
       summary: summary || null,
       objectives: objectives || null,
       strategies: strategies || null,

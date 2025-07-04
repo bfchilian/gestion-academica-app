@@ -5,6 +5,7 @@ import { useStudents } from '../hooks/useStudents';
 import { useAttendance } from '../hooks/useAttendance';
 import { useParticipation } from '../hooks/useParticipation';
 import { useMood } from '../hooks/useMood';
+import { useCourses } from '../hooks/useCourses'; // Import useCourses
 
 interface Props {
   userId: string;
@@ -27,6 +28,7 @@ const DashboardPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   const { attendanceRecords } = useAttendance(userId, filteredStudentIds, selectedPeriod);
   const { participationRecords } = useParticipation(userId, filteredStudentIds, selectedPeriod);
   const { moodRecords } = useMood(userId, filteredStudentIds, selectedPeriod);
+  const { courses } = useCourses(userId, selectedPeriod); // Fetch courses
 
   const uniqueGroups = useMemo(() => {
     const groups = new Set<string>();
@@ -128,6 +130,18 @@ const DashboardPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
             <Card.Body>
               <Card.Title>{moodRecords.length}</Card.Title>
               <Card.Text>Registros de Estado de Ánimo</Card.Text>
+            </Card.Body>
+          </Card>
+        </Col>
+        <Col md={3}>
+          <Card
+            className="text-center bg-dark text-white mb-3"
+            style={{ cursor: 'pointer' }}
+            onClick={() => navigate('/courses')}
+          >
+            <Card.Body>
+              <Card.Title>{courses.length}</Card.Title>
+              <Card.Text>Materias Registradas</Card.Text>
             </Card.Body>
           </Card>
         </Col>
