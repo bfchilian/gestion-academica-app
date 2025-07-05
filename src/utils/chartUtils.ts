@@ -17,8 +17,12 @@ ChartJS.register(
   LineElement
 );
 
-export const processAttendanceData = (attendanceRecords: AttendanceRecord[], students: Student[]) => {
-  const dates = Array.from(new Set(attendanceRecords.map(record => record.date))).sort();
+export const processAttendanceData = (attendanceRecords: AttendanceRecord[], students: Student[], selectedStudentId?: string) => {
+  const filteredRecords = selectedStudentId
+    ? attendanceRecords.filter(record => record.studentId === selectedStudentId)
+    : attendanceRecords;
+
+  const dates = Array.from(new Set(filteredRecords.map(record => record.date))).sort();
   const presentCounts: { [date: string]: number } = {};
   const absentCounts: { [date: string]: number } = {};
 
@@ -27,7 +31,7 @@ export const processAttendanceData = (attendanceRecords: AttendanceRecord[], stu
     absentCounts[date] = 0;
   });
 
-  attendanceRecords.forEach(record => {
+  filteredRecords.forEach(record => {
     if (record.status === 'present') {
       presentCounts[record.date]++;
     } else {
@@ -60,7 +64,11 @@ export const processAttendanceData = (attendanceRecords: AttendanceRecord[], stu
   return { data, csvData };
 };
 
-export const processParticipationData = (participationRecords: ParticipationRecord[], students: Student[]) => {
+export const processParticipationData = (participationRecords: ParticipationRecord[], students: Student[], selectedStudentId?: string) => {
+  const filteredRecords = selectedStudentId
+    ? participationRecords.filter(record => record.studentId === selectedStudentId)
+    : participationRecords;
+
   const studentPoints: { [studentId: string]: number } = {};
   const studentNames: { [studentId: string]: string } = {};
 
@@ -69,23 +77,23 @@ export const processParticipationData = (participationRecords: ParticipationReco
     studentNames[student.id] = student.name;
   });
 
-  participationRecords.forEach(record => {
+  filteredRecords.forEach(record => {
     studentPoints[record.studentId] += record.points;
   });
 
-  const labels = students.map(student => student.name);
+  const labels = selectedStudentId ? [studentNames[selectedStudentId]] : students.map(student => student.name);
   const data = {
     labels,
     datasets: [
       {
         label: 'Puntos de Participación Totales',
-        data: students.map(student => studentPoints[student.id]),
+        data: selectedStudentId ? [studentPoints[selectedStudentId]] : students.map(student => studentPoints[student.id]),
         backgroundColor: 'rgba(153, 102, 255, 0.6)',
       },
     ],
   };
 
-  const csvData = participationRecords.map(record => ({
+  const csvData = filteredRecords.map(record => ({
     Fecha: record.date,
     Estudiante: studentNames[record.studentId],
     'Puntos de Participación': record.points,
@@ -95,7 +103,11 @@ export const processParticipationData = (participationRecords: ParticipationReco
   return { data, csvData };
 };
 
-export const processMoodData = (moodRecords: MoodRecord[], students: Student[]) => {
+export const processMoodData = (moodRecords: MoodRecord[], students: Student[], selectedStudentId?: string) => {
+  const filteredRecords = selectedStudentId
+    ? moodRecords.filter(record => record.studentId === selectedStudentId)
+    : moodRecords;
+
   const studentMoods: { [studentId: string]: { date: string; mood: number }[] } = {};
   const studentNames: { [studentId: string]: string } = {};
 
@@ -104,13 +116,13 @@ export const processMoodData = (moodRecords: MoodRecord[], students: Student[]) 
     studentNames[student.id] = student.name;
   });
 
-  moodRecords.forEach(record => {
+  filteredRecords.forEach(record => {
     studentMoods[record.studentId].push({ date: record.date, mood: record.mood });
   });
 
-  const allDates = Array.from(new Set(moodRecords.map(record => record.date))).sort();
+  const allDates = Array.from(new Set(filteredRecords.map(record => record.date))).sort();
 
-  const datasets = students.map(student => {
+  const datasets = (selectedStudentId ? students.filter(s => s.id === selectedStudentId) : students).map(student => {
     const moodsByDate: { [date: string]: number[] } = {};
     studentMoods[student.id].forEach(record => {
       if (!moodsByDate[record.date]) {
@@ -138,7 +150,7 @@ export const processMoodData = (moodRecords: MoodRecord[], students: Student[]) 
     datasets,
   };
 
-  const csvData = moodRecords.map(record => {
+  const csvData = filteredRecords.map(record => {
     return {
       Fecha: record.date,
       Estudiante: studentNames[record.studentId],

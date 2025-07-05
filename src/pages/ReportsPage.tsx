@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
-import { Button, Card, Col, Row } from 'react-bootstrap';
+import { Button, Card, Col, Row, Form } from 'react-bootstrap';
 import { useStudents } from '../hooks/useStudents';
 import { useAttendance } from '../hooks/useAttendance';
 import { useParticipation } from '../hooks/useParticipation';
@@ -13,18 +13,36 @@ interface Props {
 }
 
 const ReportsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
-  const { students } = useStudents(userId, undefined, undefined, selectedPeriod);
-  const { attendanceRecords } = useAttendance(userId, undefined, selectedPeriod);
-  const { participationRecords } = useParticipation(userId, undefined, selectedPeriod);
-  const { moodRecords } = useMood(userId, undefined, selectedPeriod);
+  const [selectedStudentId, setSelectedStudentId] = useState('');
 
-  const attendanceChartData = processAttendanceData(attendanceRecords, students);
-  const participationChartData = processParticipationData(participationRecords, students);
-  const moodChartData = processMoodData(moodRecords, students);
+  const { students } = useStudents(userId, undefined, undefined, selectedPeriod);
+  const { attendanceRecords } = useAttendance(userId, selectedStudentId ? [selectedStudentId] : undefined, selectedPeriod);
+  const { participationRecords } = useParticipation(userId, selectedStudentId ? [selectedStudentId] : undefined, selectedPeriod);
+  const { moodRecords } = useMood(userId, selectedStudentId ? [selectedStudentId] : undefined, selectedPeriod);
+
+  const attendanceChartData = processAttendanceData(attendanceRecords, students, selectedStudentId);
+  const participationChartData = processParticipationData(participationRecords, students, selectedStudentId);
+  const moodChartData = processMoodData(moodRecords, students, selectedStudentId);
 
   return (
     <div>
       <h1>📈 Informes y Visualizaciones</h1>
+
+      <Form.Group controlId="studentSelect" className="mb-3">
+        <Form.Label>Filtrar por Estudiante</Form.Label>
+        <Form.Control
+          as="select"
+          value={selectedStudentId}
+          onChange={(e) => setSelectedStudentId(e.target.value)}
+        >
+          <option value="">Todos los Estudiantes</option>
+          {students.map((student) => (
+            <option key={student.id} value={student.id}>
+              {student.name}
+            </option>
+          ))}
+        </Form.Control>
+      </Form.Group>
 
       <Row className="mb-4">
         <Col>
