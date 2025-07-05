@@ -32,6 +32,37 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   const [file, setFile] = useState<File | null>(null);
   const [uploadMessage, setUploadMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null);
 
+  const [sortColumn, setSortColumn] = useState<keyof Student>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
+  const sortedStudents = useMemo(() => {
+    let sortableStudents = [...students];
+    if (sortColumn) {
+      sortableStudents.sort((a, b) => {
+        const aValue = a[sortColumn];
+        const bValue = b[bValue];
+
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        }
+        // Fallback for other types or if values are not strings
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableStudents;
+  }, [students, sortColumn, sortDirection]);
+
+  const handleSort = (column: keyof Student) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortColumn(column);
+      setSortDirection('asc');
+    }
+  };
+
   const allGroups = useMemo(() => {
     const groups = new Set<string>();
     students.forEach(s => s.group && groups.add(s.group));
@@ -134,22 +165,22 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Matrícula</th> {/* New column header */}
-            <th>Grupo</th>
-            <th>Curso</th>
-            <th>Email</th> {/* New column header */}
+            <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>Nombre {sortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th onClick={() => handleSort('matricula')} style={{ cursor: 'pointer' }}>Matrícula {sortColumn === 'matricula' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th onClick={() => handleSort('group')} style={{ cursor: 'pointer' }}>Grupo {sortColumn === 'group' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th onClick={() => handleSort('course')} style={{ cursor: 'pointer' }}>Curso {sortColumn === 'course' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th>Email</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {students.map((student) => (
+          {sortedStudents.map((student) => (
             <tr key={student.id}>
               <td>{student.name}</td>
-              <td>{student.matricula || 'N/A'}</td> {/* Display matricula */}
+              <td>{student.matricula || 'N/A'}</td>
               <td>{student.group || 'N/A'}</td>
               <td>{student.course || 'N/A'}</td>
-              <td>{student.email || 'N/A'}</td> {/* Display email */}
+              <td>{student.email || 'N/A'}</td>
               <td>
                 <Button variant="warning" onClick={() => handleShowAddEditModal(student)} className="me-2">
                   Editar

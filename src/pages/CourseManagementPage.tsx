@@ -1,70 +1,74 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button, Form, Table, Modal, Alert } from 'react-bootstrap';
 import { useCourses } from '../hooks/useCourses';
 import { Course } from '../types/Course';
 
 interface Props {
   userId: string;
-  selectedPeriod: string;
 }
 
-const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
-  const { courses, addCourse, updateCourse, deleteCourse } = useCourses(userId, selectedPeriod);
+const CourseManagementPage: React.FC<Props> = ({ userId }) => {
+  const [localSelectedPeriod, setLocalSelectedPeriod] = useState('Verano 25'); // Default period for this page
+  const availablePeriods = ['Primavera 25', 'Verano 25', 'Otoño 25']; // Example periods
+
+  const { courses, addCourse, updateCourse, deleteCourse } = useCourses(userId, localSelectedPeriod);
   const [showAddEditModal, setShowAddEditModal] = useState(false);
   const [currentCourse, setCurrentCourse] = useState<Course | null>(null);
   const [name, setName] = useState('');
-  const [group, setGroup] = useState(''); // New state for group
-  const [course, setCourse] = useState(''); // New state for course
+  const [group, setGroup] = useState('');
+  const [course, setCourse] = useState('');
   const [summary, setSummary] = useState('');
   const [objectives, setObjectives] = useState('');
   const [strategies, setStrategies] = useState('');
   const [activities, setActivities] = useState('');
   const [tasks, setTasks] = useState('');
 
-  const handleShowAddEditModal = (course?: Course) => {
-    setCurrentCourse(course || null);
-    setName(course ? course.name : '');
-    setGroup(course?.group || ''); // Set group for editing
-    setCourse(course?.course || ''); // Set course for editing
-    setSummary(course?.summary || '');
-    setObjectives(course?.objectives || '');
-    setStrategies(course?.strategies || '');
-    setActivities(course?.activities || '');
-    setTasks(course?.tasks || '');
-    setShowAddEditModal(true);
-  };
+  const [sortColumn, setSortColumn] = useState<keyof Course>('name');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
 
-  const handleCloseAddEditModal = () => {
-    setShowAddEditModal(false);
-    setCurrentCourse(null);
-    setName('');
-    setGroup(''); // Clear group on close
-    setCourse(''); // Clear course on close
-    setSummary('');
-    setObjectives('');
-    setStrategies('');
-    setActivities('');
-    setTasks('');
-  };
+  const sortedCourses = useMemo(() => {
+    let sortableCourses = [...courses];
+    if (sortColumn) {
+      sortableCourses.sort((a, b) => {
+        const aValue = a[sortColumn];
+        const bValue = b[sortColumn];
 
-  const handleSaveCourse = () => {
-    if (!name || !group || !course) {
-      alert('Por favor, completa el Nombre de la Materia, Grupo y Curso.');
-      return;
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        }
+        // Fallback for other types or if values are not strings
+        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+      });
     }
+    return sortableCourses;
+  }, [courses, sortColumn, sortDirection]);
 
-    if (currentCourse) {
-      updateCourse(currentCourse.id, name, group, course, summary, objectives, strategies, activities, tasks);
+  const handleSort = (column: keyof Course) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
-      addCourse(name, group, course, summary, objectives, strategies, activities, tasks);
+      setSortColumn(column);
+      setSortDirection('asc');
     }
-    handleCloseAddEditModal();
   };
 
   return (
     <div>
       <h1>📚 Gestión de Materias</h1>
-      <p>Periodo Actual: {selectedPeriod}</p>
+      <Form.Group controlId="periodSelect" className="mb-3">
+        <Form.Label>Filtrar por Periodo Escolar</Form.Label>
+        <Form.Select
+          value={localSelectedPeriod}
+          onChange={(e) => setLocalSelectedPeriod(e.target.value)}
+        >
+          {availablePeriods.map(period => (
+            <option key={period} value={period}>{period}</option>
+          ))}
+        </Form.Select>
+      </Form.Group>
+      <p>Periodo Seleccionado: {localSelectedPeriod}</p>
       <div className="mb-3">
         <Button onClick={() => handleShowAddEditModal()} className="me-2">
           Añadir Materia
@@ -74,19 +78,21 @@ const CourseManagementPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
       <Table striped bordered hover>
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Grupo</th>
-            <th>Curso</th>
+            <th onClick={() => handleSort('name')} style={{ cursor: 'pointer' }}>Nombre {sortColumn === 'name' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th onClick={() => handleSort('group')} style={{ cursor: 'pointer' }}>Grupo {sortColumn === 'group' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th onClick={() => handleSort('course')} style={{ cursor: 'pointer' }}>Curso {sortColumn === 'course' ? (sortDirection === 'asc' ? '▲' : '▼') : ''}</th>
+            <th>Periodo</th>
             <th>Resumen</th>
             <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
-          {courses.map((course) => (
+          {sortedCourses.map((course) => (
             <tr key={course.id}>
               <td>{course.name}</td>
               <td>{course.group}</td>
               <td>{course.course}</td>
+              <td>{course.period}</td>
               <td>{course.summary || 'N/A'}</td>
               <td>
                 <Button variant="warning" onClick={() => handleShowAddEditModal(course)} className="me-2">
