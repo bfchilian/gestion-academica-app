@@ -68,7 +68,7 @@ function App() {
             <Route path="/participation" element={<ParticipationPage userId={userId} selectedPeriod={selectedPeriod} />} />
             <Route path="/mood" element={<MoodPage userId={userId} selectedPeriod={selectedPeriod} />} />
             <Route path="/reports" element={<ReportsPage userId={userId} selectedPeriod={selectedPeriod} />} />
-            <Route path="/courses" element={<CourseManagementPage userId={userId} selectedPeriod={selectedPeriod} />} />
+            <Route path="/courses" element={<CourseManagementPage userId={userId} />} />
           </Routes>
         </Col>
       </Row>

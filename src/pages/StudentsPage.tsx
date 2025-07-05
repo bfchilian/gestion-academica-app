@@ -40,14 +40,14 @@ const StudentsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
     if (sortColumn) {
       sortableStudents.sort((a, b) => {
         const aValue = a[sortColumn];
-        const bValue = b[bValue];
+        const bValue = b[sortColumn];
 
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
         }
-        // Fallback for other types or if values are not strings
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        // Fallback for other types or if values are not comparable
         return 0;
       });
     }

@@ -35,10 +35,10 @@ const CourseManagementPage: React.FC<Props> = ({ userId }) => {
 
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           return sortDirection === 'asc' ? aValue.localeCompare(bValue) : bValue.localeCompare(aValue);
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
         }
-        // Fallback for other types or if values are not strings
-        if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-        if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+        // Fallback for other types or if values are not comparable
         return 0;
       });
     }
@@ -52,6 +52,46 @@ const CourseManagementPage: React.FC<Props> = ({ userId }) => {
       setSortColumn(column);
       setSortDirection('asc');
     }
+  };
+
+  const handleShowAddEditModal = (course?: Course) => {
+    setCurrentCourse(course || null);
+    setName(course ? course.name : '');
+    setGroup(course?.group || '');
+    setCourse(course?.course || '');
+    setSummary(course?.summary || '');
+    setObjectives(course?.objectives || '');
+    setStrategies(course?.strategies || '');
+    setActivities(course?.activities || '');
+    setTasks(course?.tasks || '');
+    setShowAddEditModal(true);
+  };
+
+  const handleCloseAddEditModal = () => {
+    setShowAddEditModal(false);
+    setCurrentCourse(null);
+    setName('');
+    setGroup('');
+    setCourse('');
+    setSummary('');
+    setObjectives('');
+    setStrategies('');
+    setActivities('');
+    setTasks('');
+  };
+
+  const handleSaveCourse = () => {
+    if (!name || !group || !course) {
+      alert('Por favor, completa el Nombre de la Materia, Grupo y Curso.');
+      return;
+    }
+
+    if (currentCourse) {
+      updateCourse(currentCourse.id, name, group, course, summary, objectives, strategies, activities, tasks);
+    } else {
+      addCourse(name, group, course, summary, objectives, strategies, activities, tasks);
+    }
+    handleCloseAddEditModal();
   };
 
   return (
