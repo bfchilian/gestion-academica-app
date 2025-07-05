@@ -29,12 +29,12 @@ function App() {
           <Nav className="flex-column flex-grow-1">
             <Nav.Link as={Link as any} to="/">🏠 Inicio</Nav.Link>
             <Nav.Link as={Link as any} to="/dashboard">📊 Dashboard</Nav.Link>
+            <Nav.Link as={Link as any} to="/courses">📚 Materias</Nav.Link>
             <Nav.Link as={Link as any} to="/students">🧑‍🎓 Estudiantes</Nav.Link>
             <Nav.Link as={Link as any} to="/attendance">✅ Pase de Lista</Nav.Link>
             <Nav.Link as={Link as any} to="/participation">🗣️ Participación</Nav.Link>
             <Nav.Link as={Link as any} to="/mood">😊 Estado de Ánimo</Nav.Link>
             <Nav.Link as={Link as any} to="/reports">📈 Informes</Nav.Link>
-            <Nav.Link as={Link as any} to="/courses">📚 Materias</Nav.Link>
           </Nav>
           <div className="mt-3 px-3 w-100">
             <Form.Group controlId="periodSelect">
