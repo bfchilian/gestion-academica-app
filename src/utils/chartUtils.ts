@@ -17,93 +17,234 @@ ChartJS.register(
   LineElement
 );
 
-export const processAttendanceData = (attendanceRecords: AttendanceRecord[], students: Student[], selectedStudentId?: string) => {
-  const filteredRecords = selectedStudentId
-    ? attendanceRecords.filter(record => record.studentId === selectedStudentId)
-    : attendanceRecords;
+export const processAttendanceData = (attendanceRecords: AttendanceRecord[], studentsInScope: Student[], selectedStudentId?: string, selectedGroup?: string, selectedCourse?: string) => {
+  let recordsToProcess = attendanceRecords;
 
-  const dates = Array.from(new Set(filteredRecords.map(record => record.date))).sort();
-  const presentCounts: { [date: string]: number } = {};
-  const absentCounts: { [date: string]: number } = {};
+  // If a specific student is selected, override group/course filters for this chart
+  if (selectedStudentId) {
+    recordsToProcess = attendanceRecords.filter(record => record.studentId === selectedStudentId);
+    studentsInScope = studentsInScope.filter(s => s.id === selectedStudentId); // Ensure studentsInScope also reflects single student
+  }
 
-  dates.forEach(date => {
-    presentCounts[date] = 0;
-    absentCounts[date] = 0;
-  });
+  const dates = Array.from(new Set(recordsToProcess.map(record => record.date))).sort();
+  const datasets: any[] = [];
+  const csvData: any[] = [];
 
-  filteredRecords.forEach(record => {
-    if (record.status === 'present') {
-      presentCounts[record.date]++;
-    } else {
-      absentCounts[record.date]++;
-    }
-  });
+  if (selectedStudentId) {
+    // Single student view
+    const studentName = studentsInScope[0]?.name || 'Estudiante Desconocido';
+    const presentCounts: { [date: string]: number } = {};
+    const absentCounts: { [date: string]: number } = {};
 
-  const data = {
-    labels: dates,
-    datasets: [
-      {
-        label: 'Presentes',
+    dates.forEach(date => {
+      presentCounts[date] = 0;
+      absentCounts[date] = 0;
+    });
+
+    recordsToProcess.forEach(record => {
+      if (record.status === 'present') {
+        presentCounts[record.date]++;
+      } else {
+        absentCounts[record.date]++;
+      }
+    });
+
+    datasets.push({
+      label: `${studentName} - Presente`,
+      data: dates.map(date => presentCounts[date]),
+      backgroundColor: 'rgba(75, 192, 192, 0.6)',
+    });
+    datasets.push({
+      label: `${studentName} - Ausente`,
+      data: dates.map(date => absentCounts[date]),
+      backgroundColor: 'rgba(255, 99, 132, 0.6)',
+    });
+
+    csvData.push(...dates.map(date => ({
+      Fecha: date,
+      Estudiante: studentName,
+      Presente: presentCounts[date],
+      Ausente: absentCounts[date],
+    })));
+
+  } else if (selectedCourse && !selectedGroup) {
+    // Contrast by group within a selected course
+    const uniqueGroups = Array.from(new Set(studentsInScope.map(s => s.group))).filter(Boolean) as string[];
+    uniqueGroups.sort();
+
+    uniqueGroups.forEach(group => {
+      const groupStudentIds = studentsInScope.filter(s => s.group === group).map(s => s.id);
+      const groupRecords = recordsToProcess.filter(record => groupStudentIds.includes(record.studentId));
+
+      const presentCounts: { [date: string]: number } = {};
+      const absentCounts: { [date: string]: number } = {};
+
+      dates.forEach(date => {
+        presentCounts[date] = 0;
+        absentCounts[date] = 0;
+      });
+
+      groupRecords.forEach(record => {
+        if (record.status === 'present') {
+          presentCounts[record.date]++;
+        } else {
+          absentCounts[record.date]++;
+        }
+      });
+
+      datasets.push({
+        label: `Grupo ${group} - Presente`,
         data: dates.map(date => presentCounts[date]),
-        backgroundColor: 'rgba(75, 192, 192, 0.6)',
-      },
-      {
-        label: 'Ausentes',
+        backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+      });
+      datasets.push({
+        label: `Grupo ${group} - Ausente`,
         data: dates.map(date => absentCounts[date]),
-        backgroundColor: 'rgba(255, 99, 132, 0.6)',
-      },
-    ],
+        backgroundColor: `hsl(${Math.random() * 360}, 50%, 70%)`,
+      });
+
+      csvData.push(...dates.map(date => ({
+        Fecha: date,
+        Curso: selectedCourse,
+        Grupo: group,
+        Presente: presentCounts[date],
+        Ausente: absentCounts[date],
+      })));
+    });
+
+  } else {
+    // General view (all students, or filtered by group/course if both are selected)
+    const presentCounts: { [date: string]: number } = {};
+    const absentCounts: { [date: string]: number } = {};
+
+    dates.forEach(date => {
+      presentCounts[date] = 0;
+      absentCounts[date] = 0;
+    });
+
+    recordsToProcess.forEach(record => {
+      if (record.status === 'present') {
+        presentCounts[record.date]++;
+      } else {
+        absentCounts[record.date]++;
+      }
+    });
+
+    datasets.push({
+      label: 'Presentes',
+      data: dates.map(date => presentCounts[date]),
+      backgroundColor: 'rgba(75, 192, 192, 0.6)',
+    });
+    datasets.push({
+      label: 'Ausentes',
+      data: dates.map(date => absentCounts[date]),
+      backgroundColor: 'rgba(255, 99, 132, 0.6)',
+    });
+
+    csvData.push(...dates.map(date => ({
+      Fecha: date,
+      Presentes: presentCounts[date],
+      Ausentes: absentCounts[date],
+    })));
+  }
+
+  return {
+    data: {
+      labels: dates,
+      datasets,
+    },
+    csvData
   };
-
-  const csvData = dates.map(date => ({
-    Fecha: date,
-    Presentes: presentCounts[date],
-    Ausentes: absentCounts[date],
-  }));
-
-  return { data, csvData };
 };
 
-export const processParticipationData = (participationRecords: ParticipationRecord[], students: Student[], selectedStudentId?: string) => {
-  const filteredRecords = selectedStudentId
-    ? participationRecords.filter(record => record.studentId === selectedStudentId)
-    : participationRecords;
+export const processParticipationData = (participationRecords: ParticipationRecord[], studentsInScope: Student[], selectedStudentId?: string, selectedGroup?: string, selectedCourse?: string) => {
+  let recordsToProcess = participationRecords;
+
+  // If a specific student is selected, override group/course filters for this chart
+  if (selectedStudentId) {
+    recordsToProcess = participationRecords.filter(record => record.studentId === selectedStudentId);
+    studentsInScope = studentsInScope.filter(s => s.id === selectedStudentId); // Ensure studentsInScope also reflects single student
+  }
 
   const studentPoints: { [studentId: string]: number } = {};
   const studentNames: { [studentId: string]: string } = {};
 
-  students.forEach(student => {
+  studentsInScope.forEach(student => {
     studentPoints[student.id] = 0;
     studentNames[student.id] = student.name;
   });
 
-  filteredRecords.forEach(record => {
+  recordsToProcess.forEach(record => {
     studentPoints[record.studentId] += record.points;
   });
 
-  const labels = selectedStudentId ? [studentNames[selectedStudentId]] : students.map(student => student.name);
-  const data = {
-    labels,
-    datasets: [
-      {
-        label: 'Puntos de Participación Totales',
-        data: selectedStudentId ? [studentPoints[selectedStudentId]] : students.map(student => studentPoints[student.id]),
-        backgroundColor: 'rgba(153, 102, 255, 0.6)',
-      },
-    ],
+  const datasets: any[] = [];
+  const csvData: any[] = [];
+
+  if (selectedStudentId) {
+    // Single student view
+    const studentName = studentsInScope[0]?.name || 'Estudiante Desconocido';
+    datasets.push({
+      label: `${studentName} - Puntos de Participación`,
+      data: [studentPoints[selectedStudentId]],
+      backgroundColor: 'rgba(153, 102, 255, 0.6)',
+    });
+    csvData.push(...recordsToProcess.map(record => ({
+      Fecha: record.date,
+      Estudiante: studentName,
+      'Puntos de Participación': record.points,
+      Notas: record.notes || '',
+    })));
+
+  } else if (selectedCourse && !selectedGroup) {
+    // Contrast by group within a selected course
+    const uniqueGroups = Array.from(new Set(studentsInScope.map(s => s.group))).filter(Boolean) as string[];
+    uniqueGroups.sort();
+
+    uniqueGroups.forEach(group => {
+      const groupStudentIds = studentsInScope.filter(s => s.group === group).map(s => s.id);
+      const groupRecords = recordsToProcess.filter(record => groupStudentIds.includes(record.studentId));
+      const groupTotalPoints = groupRecords.reduce((sum, record) => sum + record.points, 0);
+
+      datasets.push({
+        label: `Grupo ${group} - Puntos Totales`,
+        data: [groupTotalPoints],
+        backgroundColor: `hsl(${Math.random() * 360}, 70%, 50%)`,
+      });
+
+      csvData.push({
+        Curso: selectedCourse,
+        Grupo: group,
+        'Puntos de Participación Totales': groupTotalPoints,
+      });
+    });
+
+  } else {
+    // General view (all students, or filtered by group/course if both are selected)
+    const labels = studentsInScope.map(student => student.name);
+    datasets.push({
+      label: 'Puntos de Participación Totales',
+      data: studentsInScope.map(student => studentPoints[student.id]),
+      backgroundColor: 'rgba(153, 102, 255, 0.6)',
+    });
+    csvData.push(...recordsToProcess.map(record => ({
+      Fecha: record.date,
+      Estudiante: studentNames[record.studentId],
+      'Puntos de Participación': record.points,
+      Notas: record.notes || '',
+    })));
+  }
+
+  return {
+    data: {
+      labels: selectedStudentId ? [studentsInScope[0]?.name || 'Estudiante'] : (selectedCourse && !selectedGroup ? uniqueGroups : studentsInScope.map(s => s.name)),
+      datasets,
+    },
+    csvData
   };
-
-  const csvData = filteredRecords.map(record => ({
-    Fecha: record.date,
-    Estudiante: studentNames[record.studentId],
-    'Puntos de Participación': record.points,
-    Notas: record.notes || '',
-  }));
-
-  return { data, csvData };
 };
 
-export const processMoodData = (moodRecords: MoodRecord[], students: Student[], selectedStudentId?: string) => {
+export const processMoodData = (moodRecords: MoodRecord[], studentsInScope: Student[], selectedStudentId?: string) => {
   const filteredRecords = selectedStudentId
     ? moodRecords.filter(record => record.studentId === selectedStudentId)
     : moodRecords;
@@ -111,7 +252,7 @@ export const processMoodData = (moodRecords: MoodRecord[], students: Student[], 
   const studentMoods: { [studentId: string]: { date: string; mood: number }[] } = {};
   const studentNames: { [studentId: string]: string } = {};
 
-  students.forEach(student => {
+  studentsInScope.forEach(student => {
     studentMoods[student.id] = [];
     studentNames[student.id] = student.name;
   });
@@ -122,7 +263,7 @@ export const processMoodData = (moodRecords: MoodRecord[], students: Student[], 
 
   const allDates = Array.from(new Set(filteredRecords.map(record => record.date))).sort();
 
-  const datasets = (selectedStudentId ? students.filter(s => s.id === selectedStudentId) : students).map(student => {
+  const datasets = (selectedStudentId ? studentsInScope.filter(s => s.id === selectedStudentId) : studentsInScope).map(student => {
     const moodsByDate: { [date: string]: number[] } = {};
     studentMoods[student.id].forEach(record => {
       if (!moodsByDate[record.date]) {

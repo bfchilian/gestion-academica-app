@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Bar, Line } from 'react-chartjs-2';
 import { Button, Card, Col, Row, Form } from 'react-bootstrap';
 import { useStudents } from '../hooks/useStudents';
@@ -14,35 +14,113 @@ interface Props {
 
 const ReportsPage: React.FC<Props> = ({ userId, selectedPeriod }) => {
   const [selectedStudentId, setSelectedStudentId] = useState('');
+  const [selectedGroup, setSelectedGroup] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
 
-  const { students } = useStudents(userId, undefined, undefined, selectedPeriod);
-  const { attendanceRecords } = useAttendance(userId, selectedStudentId ? [selectedStudentId] : undefined, selectedPeriod);
-  const { participationRecords } = useParticipation(userId, selectedStudentId ? [selectedStudentId] : undefined, selectedPeriod);
-  const { moodRecords } = useMood(userId, selectedStudentId ? [selectedStudentId] : undefined, selectedPeriod);
+  const { students: allStudents } = useStudents(userId, undefined, undefined, selectedPeriod);
 
-  const attendanceChartData = processAttendanceData(attendanceRecords, students, selectedStudentId);
-  const participationChartData = processParticipationData(participationRecords, students, selectedStudentId);
-  const moodChartData = processMoodData(moodRecords, students, selectedStudentId);
+  const filteredStudentsByCourseGroup = useMemo(() => {
+    return allStudents.filter(student => {
+      const matchesGroup = selectedGroup ? student.group === selectedGroup : true;
+      const matchesCourse = selectedCourse ? student.course === selectedCourse : true;
+      return matchesGroup && matchesCourse;
+    });
+  }, [allStudents, selectedGroup, selectedCourse]);
+
+  const studentIdsForHooks = useMemo(() => {
+    if (selectedStudentId) {
+      return [selectedStudentId];
+    } else if (selectedGroup || selectedCourse) {
+      return filteredStudentsByCourseGroup.map(s => s.id);
+    } else {
+      return undefined; // No specific filter, fetch all for the period
+    }
+  }, [selectedStudentId, selectedGroup, selectedCourse, filteredStudentsByCourseGroup]);
+
+  const { attendanceRecords } = useAttendance(userId, studentIdsForHooks, selectedPeriod);
+  const { participationRecords } = useParticipation(userId, studentIdsForHooks, selectedPeriod);
+  const { moodRecords } = useMood(userId, studentIdsForHooks, selectedPeriod);
+
+  const uniqueGroups = useMemo(() => {
+    const groups = new Set<string>();
+    allStudents.forEach(student => {
+      if (student.group) groups.add(student.group);
+    });
+    return Array.from(groups).sort();
+  }, [allStudents]);
+
+  const uniqueCourses = useMemo(() => {
+    const courses = new Set<string>();
+    allStudents.forEach(student => {
+      if (student.course) courses.add(student.course);
+    });
+    return Array.from(courses).sort();
+  }, [allStudents]);
+
+  const attendanceChartData = processAttendanceData(attendanceRecords, filteredStudentsByCourseGroup, selectedStudentId, selectedGroup, selectedCourse);
+  const participationChartData = processParticipationData(participationRecords, filteredStudentsByCourseGroup, selectedStudentId, selectedGroup, selectedCourse);
+  const moodChartData = processMoodData(moodRecords, filteredStudentsByCourseGroup, selectedStudentId);
 
   return (
     <div>
       <h1>📈 Informes y Visualizaciones</h1>
 
-      <Form.Group controlId="studentSelect" className="mb-3">
-        <Form.Label>Filtrar por Estudiante</Form.Label>
-        <Form.Control
-          as="select"
-          value={selectedStudentId}
-          onChange={(e) => setSelectedStudentId(e.target.value)}
-        >
-          <option value="">Todos los Estudiantes</option>
-          {students.map((student) => (
-            <option key={student.id} value={student.id}>
-              {student.name}
-            </option>
-          ))}
-        </Form.Control>
-      </Form.Group>
+      <Row className="mb-3">
+        <Col md={4}>
+          <Form.Group controlId="courseSelect">
+            <Form.Label>Filtrar por Curso</Form.Label>
+            <Form.Control
+              as="select"
+              value={selectedCourse}
+              onChange={(e) => {
+                setSelectedCourse(e.target.value);
+                setSelectedGroup(''); // Reset group when course changes
+                setSelectedStudentId(''); // Reset student when course changes
+              }}
+            >
+              <option value="">Todos los Cursos</option>
+              {uniqueCourses.map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        </Col>
+        <Col md={4}>
+          <Form.Group controlId="groupSelect">
+            <Form.Label>Filtrar por Grupo</Form.Label>
+            <Form.Control
+              as="select"
+              value={selectedGroup}
+              onChange={(e) => {
+                setSelectedGroup(e.target.value);
+                setSelectedStudentId(''); // Reset student when group changes
+              }}
+            >
+              <option value="">Todos los Grupos</option>
+              {uniqueGroups.map((g) => (
+                <option key={g} value={g}>{g}</option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        </Col>
+        <Col md={4}>
+          <Form.Group controlId="studentSelect">
+            <Form.Label>Filtrar por Estudiante</Form.Label>
+            <Form.Control
+              as="select"
+              value={selectedStudentId}
+              onChange={(e) => setSelectedStudentId(e.target.value)}
+            >
+              <option value="">Todos los Estudiantes</option>
+              {filteredStudentsByCourseGroup.map((student) => (
+                <option key={student.id} value={student.id}>
+                  {student.name}
+                </option>
+              ))}
+            </Form.Control>
+          </Form.Group>
+        </Col>
+      </Row>
 
       <Row className="mb-4">
         <Col>
