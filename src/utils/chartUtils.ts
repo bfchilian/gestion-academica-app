@@ -237,7 +237,11 @@ export const processParticipationData = (participationRecords: ParticipationReco
 
   return {
     data: {
-      labels: selectedStudentId ? [studentsInScope[0]?.name || 'Estudiante'] : (selectedCourse && !selectedGroup ? uniqueGroups : studentsInScope.map(s => s.name)),
+      labels: selectedStudentId
+        ? [studentsInScope[0]?.name || 'Estudiante']
+        : (selectedCourse && !selectedGroup
+            ? Array.from(new Set(studentsInScope.map(s => s.group))).filter(Boolean).sort() as string[]
+            : studentsInScope.map(s => s.name)),
       datasets,
     },
     csvData
